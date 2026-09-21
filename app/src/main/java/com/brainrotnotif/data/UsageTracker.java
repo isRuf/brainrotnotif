@@ -3,6 +3,7 @@ package com.brainrotnotif.data;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ public final class UsageTracker {
     private final long graceMs;
 
     private final Map<String, Long> todayTotals = new HashMap<>();
+    private final Map<String, Session> sessions = new HashMap<>();
 
     private boolean initialized = false;
     private long cursorMs;
@@ -35,20 +37,36 @@ public final class UsageTracker {
             this.nowMs = dayStartMs;
             initialized = true;
         }
-        if (nowMs <= cursorMs) {
-            this.nowMs = Math.max(this.nowMs, nowMs);
-            return;
+        if (nowMs > cursorMs) {
+            List<AppEvent> events = reader.read(cursorMs, nowMs);
+            for (AppEvent e : events) {
+                apply(e);
+            }
+            cursorMs = nowMs;
         }
-        List<AppEvent> events = reader.read(cursorMs, nowMs);
-        for (AppEvent e : events) {
-            apply(e);
-        }
-        cursorMs = nowMs;
-        this.nowMs = nowMs;
+        this.nowMs = Math.max(this.nowMs, nowMs);
+        pruneSessions(this.nowMs);
     }
 
     public String getForegroundPackage() {
         return currentPkg;
+    }
+
+    public long getSessionDurationMs(String pkg) {
+        Session s = sessions.get(pkg);
+        if (s == null) {
+            return 0;
+        }
+        long duration = s.accumulatedMs;
+        if (s.resumedAtMs > 0) {
+            duration += Math.max(0, nowMs - s.resumedAtMs);
+        }
+        return duration;
+    }
+
+    public long getSessionStartMs(String pkg) {
+        Session s = sessions.get(pkg);
+        return s == null ? 0 : s.startMs;
     }
 
     public Map<String, Long> getTodayTotals() {
@@ -70,6 +88,7 @@ public final class UsageTracker {
             closeCurrent(e.timestamp);
             currentPkg = e.packageName;
             currentSinceMs = e.timestamp;
+            openSession(e.packageName, e.timestamp);
         } else {
             if (e.packageName == null || e.packageName.equals(currentPkg)) {
                 closeCurrent(e.timestamp);
@@ -86,7 +105,42 @@ public final class UsageTracker {
         if (atMs > from) {
             add(todayTotals, currentPkg, atMs - from);
         }
+        suspendSession(currentPkg, atMs);
         currentSinceMs = 0;
+    }
+
+    private void openSession(String pkg, long atMs) {
+        Session s = sessions.get(pkg);
+        if (s != null && s.resumedAtMs == 0 && atMs - s.suspendedAtMs > graceMs) {
+            s = null;
+        }
+        if (s == null) {
+            s = new Session();
+            s.startMs = atMs;
+            sessions.put(pkg, s);
+        }
+        s.resumedAtMs = atMs;
+        s.suspendedAtMs = 0;
+    }
+
+    private void suspendSession(String pkg, long atMs) {
+        Session s = sessions.get(pkg);
+        if (s == null || s.resumedAtMs == 0) {
+            return;
+        }
+        s.accumulatedMs += atMs - s.resumedAtMs;
+        s.resumedAtMs = 0;
+        s.suspendedAtMs = atMs;
+    }
+
+    private void pruneSessions(long atMs) {
+        Iterator<Map.Entry<String, Session>> it = sessions.entrySet().iterator();
+        while (it.hasNext()) {
+            Session s = it.next().getValue();
+            if (s.resumedAtMs == 0 && atMs - s.suspendedAtMs > graceMs) {
+                it.remove();
+            }
+        }
     }
 
     private long startOfDay(long ms) {
@@ -96,6 +150,13 @@ public final class UsageTracker {
                 .atStartOfDay(zone)
                 .toInstant()
                 .toEpochMilli();
+    }
+
+    private static final class Session {
+        long startMs;
+        long accumulatedMs;
+        long resumedAtMs;
+        long suspendedAtMs;
     }
 
     private static void add(Map<String, Long> map, String key, long value) {

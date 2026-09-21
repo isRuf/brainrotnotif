@@ -97,4 +97,87 @@ public class UsageTrackerTest {
         assertNull(tracker.getForegroundPackage());
         assertEquals(Long.valueOf(4 * MIN), tracker.getTodayTotals().get("yt"));
     }
+
+    @Test
+    public void sessionDurationEqualsForegroundTime() {
+        FakeUsageEventReader reader = new FakeUsageEventReader().fg("yt", t(0));
+        UsageTracker tracker = tracker(reader);
+
+        tracker.advanceTo(t(7 * MIN));
+
+        assertEquals(7 * MIN, tracker.getSessionDurationMs("yt"));
+    }
+
+    @Test
+    public void shortGapKeepsSessionAndIsNotCounted() {
+        FakeUsageEventReader reader = new FakeUsageEventReader()
+                .fg("yt", t(0))
+                .bg("yt", t(5 * MIN))
+                .fg("tg", t(5 * MIN))
+                .bg("tg", t(5 * MIN + 30_000))
+                .fg("yt", t(5 * MIN + 30_000));
+        UsageTracker tracker = tracker(reader);
+
+        tracker.advanceTo(t(8 * MIN));
+
+        // 5 минут до ухода + 2.5 минуты после возврата, пауза в 30 с не считается
+        assertEquals(5 * MIN + 150_000, tracker.getSessionDurationMs("yt"));
+    }
+
+    @Test
+    public void longGapStartsNewSession() {
+        FakeUsageEventReader reader = new FakeUsageEventReader()
+                .fg("yt", t(0))
+                .bg("yt", t(5 * MIN))
+                .fg("yt", t(7 * MIN));
+        UsageTracker tracker = tracker(reader);
+
+        tracker.advanceTo(t(9 * MIN));
+
+        assertEquals(2 * MIN, tracker.getSessionDurationMs("yt"));
+        assertEquals(t(7 * MIN), tracker.getSessionStartMs("yt"));
+    }
+
+    @Test
+    public void screenOffLongerThanGraceStartsNewSession() {
+        FakeUsageEventReader reader = new FakeUsageEventReader()
+                .fg("yt", t(0))
+                .screenOff(t(3 * MIN))
+                .fg("yt", t(10 * MIN));
+        UsageTracker tracker = tracker(reader);
+
+        tracker.advanceTo(t(11 * MIN));
+
+        assertEquals(MIN, tracker.getSessionDurationMs("yt"));
+    }
+
+    @Test
+    public void eachPackageHasItsOwnSession() {
+        FakeUsageEventReader reader = new FakeUsageEventReader()
+                .fg("yt", t(0))
+                .bg("yt", t(2 * MIN))
+                .fg("ig", t(2 * MIN))
+                .bg("ig", t(3 * MIN))
+                .fg("yt", t(3 * MIN));
+        UsageTracker tracker = tracker(reader);
+
+        tracker.advanceTo(t(4 * MIN));
+
+        assertEquals(3 * MIN, tracker.getSessionDurationMs("yt"));
+        assertEquals(MIN, tracker.getSessionDurationMs("ig"));
+        assertEquals(t(0), tracker.getSessionStartMs("yt"));
+    }
+
+    @Test
+    public void expiredSessionIsForgotten() {
+        FakeUsageEventReader reader = new FakeUsageEventReader()
+                .fg("yt", t(0))
+                .bg("yt", t(2 * MIN));
+        UsageTracker tracker = tracker(reader);
+
+        tracker.advanceTo(t(10 * MIN));
+
+        assertEquals(0, tracker.getSessionDurationMs("yt"));
+        assertEquals(0, tracker.getSessionStartMs("yt"));
+    }
 }
