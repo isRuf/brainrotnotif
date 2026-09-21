@@ -1900,6 +1900,7 @@ git commit -m "feat(catalog): brain rot app detection"
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -1915,9 +1916,13 @@ git commit -m "feat(catalog): brain rot app detection"
         android:id="@+id/nav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:menu="@menu/bottom_nav" />
+        app:menu="@menu/bottom_nav" />
 </LinearLayout>
 ```
+
+`menu` у `BottomNavigationView` — атрибут библиотеки Material, а не платформы,
+поэтому он идёт через `app:`, и корню нужен `xmlns:app`. С `android:menu`
+ресурсы не слинкуются.
 
 - [ ] **Step 3: Переписать `MainActivity`**
 

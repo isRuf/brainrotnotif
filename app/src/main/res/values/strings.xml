@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">BrainRotNotif</string>
+    <string name="tab_apps">Приложения</string>
+    <string name="add_app">Добавить приложение</string>
+    <string name="limit_title">Лимит непрерывной сессии</string>
+    <string name="no_usage_access">Нет доступа к статистике использования</string>
 </resources>
