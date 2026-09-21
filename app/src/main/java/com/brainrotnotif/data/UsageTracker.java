@@ -40,8 +40,10 @@ public final class UsageTracker {
         if (nowMs > cursorMs) {
             List<AppEvent> events = reader.read(cursorMs, nowMs);
             for (AppEvent e : events) {
+                maybeRollDay(e.timestamp);
                 apply(e);
             }
+            maybeRollDay(nowMs);
             cursorMs = nowMs;
         }
         this.nowMs = Math.max(this.nowMs, nowMs);
@@ -107,6 +109,19 @@ public final class UsageTracker {
         }
         suspendSession(currentPkg, atMs);
         currentSinceMs = 0;
+    }
+
+    /**
+     * Обрезка сегментов по началу суток уже делается в closeCurrent и
+     * getTodayTotals, поэтому здесь достаточно обнулить накопленное и сдвинуть
+     * границу дня. Сессии смену суток переживают.
+     */
+    private void maybeRollDay(long atMs) {
+        long start = startOfDay(atMs);
+        if (start != dayStartMs) {
+            todayTotals.clear();
+            dayStartMs = start;
+        }
     }
 
     private void openSession(String pkg, long atMs) {
