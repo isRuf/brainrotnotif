@@ -4,4 +4,8 @@
         android:id="@+id/tab_apps"
         android:icon="@android:drawable/ic_menu_agenda"
         android:title="@string/tab_apps" />
+    <item
+        android:id="@+id/tab_stats"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="@string/tab_stats" />
 </menu>

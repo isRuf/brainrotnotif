@@ -46,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
     @NonNull
     private Fragment fragmentFor(int itemId) {
         // R-класс в AGP 9 не final — switch по id не компилируется.
-        if (itemId == R.id.tab_apps) {
-            return new AppsFragment();
+        if (itemId == R.id.tab_stats) {
+            return new StatsFragment();
         }
         return new AppsFragment();
     }

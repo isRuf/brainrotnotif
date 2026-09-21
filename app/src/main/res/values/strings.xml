@@ -4,4 +4,5 @@
     <string name="add_app">Добавить приложение</string>
     <string name="limit_title">Лимит непрерывной сессии</string>
     <string name="no_usage_access">Нет доступа к статистике использования</string>
+    <string name="tab_stats">Статистика</string>
 </resources>
