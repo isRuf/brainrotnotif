@@ -48,7 +48,8 @@ public class AppsFragment extends Fragment implements TrackedAppsAdapter.Callbac
         list.setLayoutManager(new LinearLayoutManager(requireContext()));
         list.setAdapter(adapter);
 
-        // Обработчик кнопки «+» подключается в Task 9.
+        view.findViewById(R.id.add).setOnClickListener(v ->
+                startActivity(new android.content.Intent(requireContext(), AppPickerActivity.class)));
     }
 
     @Override
