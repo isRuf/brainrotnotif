@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -53,6 +54,9 @@ public class MonitorService extends Service
     private volatile List<TrackedApp> cache;
     private final Map<String, Integer> fired = new HashMap<>();
     private String lastNotificationText;
+    private Handler mainHandler;
+    private OverlayBanner banner;
+    private volatile String bannerPackage;
 
     public static void start(Context context) {
         ContextCompat.startForegroundService(context, new Intent(context, MonitorService.class));
@@ -80,6 +84,8 @@ public class MonitorService extends Service
         thread = new HandlerThread("monitor");
         thread.start();
         handler = new Handler(thread.getLooper());
+        mainHandler = new Handler(Looper.getMainLooper());
+        banner = new OverlayBanner(this);
     }
 
     @SuppressLint("InlinedApi")
@@ -120,12 +126,19 @@ public class MonitorService extends Service
         cache = store.getAll();
     }
 
-    /** Наполняется в Task 13. */
     protected void showBanner(String packageName, long elapsedMs) {
+        bannerPackage = packageName;
+        mainHandler.post(() -> banner.show(packageName, elapsedMs));
     }
 
-    /** Наполняется в Task 13. */
     protected void hideBanner() {
+        if (bannerPackage == null) {
+            return;
+        }
+        bannerPackage = null;
+        if (mainHandler != null) {
+            mainHandler.post(() -> banner.hide());
+        }
     }
 
     protected void scheduleTick(long delayMs) {
