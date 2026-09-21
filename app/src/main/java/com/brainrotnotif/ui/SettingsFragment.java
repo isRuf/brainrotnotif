@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import com.brainrotnotif.R;
 import com.brainrotnotif.data.BrainRotCatalog;
 import com.brainrotnotif.data.TrackedAppsStore;
+import com.brainrotnotif.monitor.MonitorService;
 import com.brainrotnotif.util.Permissions;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -52,7 +53,11 @@ public class SettingsFragment extends Fragment {
         monitoring.setChecked(store.isMonitoringEnabled());
         monitoring.setOnCheckedChangeListener((button, checked) -> {
             store.setMonitoringEnabled(checked);
-            // Запуск и остановка сервиса подключаются в Task 12.
+            if (checked) {
+                MonitorService.start(requireContext());
+            } else {
+                MonitorService.stop(requireContext());
+            }
         });
 
         view.findViewById(R.id.rescan).setOnClickListener(v -> {

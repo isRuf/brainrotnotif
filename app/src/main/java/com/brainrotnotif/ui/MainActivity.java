@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import com.brainrotnotif.R;
 import com.brainrotnotif.data.BrainRotCatalog;
 import com.brainrotnotif.data.TrackedAppsStore;
+import com.brainrotnotif.monitor.MonitorService;
 import com.brainrotnotif.util.Permissions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -43,6 +44,14 @@ public class MainActivity extends AppCompatActivity {
             int startTab = ready ? R.id.tab_apps : R.id.tab_settings;
             show(fragmentFor(startTab));
             nav.setSelectedItemId(startTab);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (store.isMonitoringEnabled() && Permissions.hasUsageAccess(this)) {
+            MonitorService.start(this);
         }
     }
 

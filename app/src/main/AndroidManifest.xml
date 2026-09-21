@@ -38,5 +38,14 @@
             android:name=".ui.AppPickerActivity"
             android:exported="false"
             android:label="@string/add_app" />
+
+        <service
+            android:name=".monitor.MonitorService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Continuous foreground-app monitoring to enforce user-configured per-app screen time limits" />
+        </service>
     </application>
 </manifest>
