@@ -39,7 +39,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             seedIfFirstRun();
-            show(new AppsFragment());
+            boolean ready = Permissions.hasUsageAccess(this) && Permissions.canDrawOverlays(this);
+            int startTab = ready ? R.id.tab_apps : R.id.tab_settings;
+            show(fragmentFor(startTab));
+            nav.setSelectedItemId(startTab);
         }
     }
 
@@ -48,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
         // R-класс в AGP 9 не final — switch по id не компилируется.
         if (itemId == R.id.tab_stats) {
             return new StatsFragment();
+        }
+        if (itemId == R.id.tab_settings) {
+            return new SettingsFragment();
         }
         return new AppsFragment();
     }

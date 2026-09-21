@@ -8,4 +8,8 @@
         android:id="@+id/tab_stats"
         android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="@string/tab_stats" />
+    <item
+        android:id="@+id/tab_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/tab_settings" />
 </menu>
