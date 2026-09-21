@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
@@ -38,7 +39,8 @@ import java.util.List;
 import java.util.Map;
 
 public class MonitorService extends Service
-        implements SharedPreferences.OnSharedPreferenceChangeListener {
+        implements SharedPreferences.OnSharedPreferenceChangeListener,
+        ScreenStateReceiver.Listener {
 
     public static final long GRACE_MS = 60_000L;
 
@@ -57,6 +59,7 @@ public class MonitorService extends Service
     private Handler mainHandler;
     private OverlayBanner banner;
     private volatile String bannerPackage;
+    private ScreenStateReceiver screenReceiver;
 
     public static void start(Context context) {
         ContextCompat.startForegroundService(context, new Intent(context, MonitorService.class));
@@ -86,6 +89,15 @@ public class MonitorService extends Service
         handler = new Handler(thread.getLooper());
         mainHandler = new Handler(Looper.getMainLooper());
         banner = new OverlayBanner(this);
+
+        // ACTION_SCREEN_ON/OFF доставляются только динамически зарегистрированным
+        // получателям. RECEIVER_NOT_EXPORTED обязателен для targetSdk 34+.
+        screenReceiver = new ScreenStateReceiver(this);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        ContextCompat.registerReceiver(this, screenReceiver, filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     @SuppressLint("InlinedApi")
@@ -117,6 +129,9 @@ public class MonitorService extends Service
         if (thread != null) {
             thread.quitSafely();
         }
+        if (screenReceiver != null) {
+            unregisterReceiver(screenReceiver);
+        }
         store.unregisterListener(this);
         super.onDestroy();
     }
@@ -139,6 +154,17 @@ public class MonitorService extends Service
         if (mainHandler != null) {
             mainHandler.post(() -> banner.hide());
         }
+    }
+
+    @Override
+    public void onScreenOn() {
+        scheduleTick(0);
+    }
+
+    @Override
+    public void onScreenOff() {
+        handler.removeCallbacks(tick);
+        hideBanner();
     }
 
     protected void scheduleTick(long delayMs) {

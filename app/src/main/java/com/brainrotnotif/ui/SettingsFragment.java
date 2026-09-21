@@ -2,6 +2,7 @@ package com.brainrotnotif.ui;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -93,6 +94,11 @@ public class SettingsFragment extends Fragment {
     }
 
     private boolean notificationsGranted() {
+        // До Android 13 разрешения на уведомления не существует: checkSelfPermission
+        // вернул бы DENIED навсегда, а запрос ничего бы не сделал.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return true;
+        }
         return ContextCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.POST_NOTIFICATIONS)
                 == PackageManager.PERMISSION_GRANTED;
