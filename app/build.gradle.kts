@@ -10,12 +10,26 @@ android {
         applicationId = "com.brainrotnotif"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = (findProperty("versionCode") as String?)?.toInt() ?: 1
+        versionName = "1.0.${versionCode}"
+    }
+
+    // A stable key lets each newer APK from the F-Droid repo install over the previous one.
+    // The key lives outside the repo; without the variables a release build stays unsigned.
+    signingConfigs {
+        create("release") {
+            System.getenv("BRAINROT_KEYSTORE_FILE")?.let { storeFile = file(it) }
+            storePassword = System.getenv("BRAINROT_KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("BRAINROT_KEY_ALIAS")
+            keyPassword = System.getenv("BRAINROT_KEY_PASSWORD")
+        }
     }
 
     buildTypes {
         release {
+            if (System.getenv("BRAINROT_KEYSTORE_FILE") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
