@@ -73,8 +73,11 @@ public class AppsFragment extends Fragment implements TrackedAppsAdapter.Callbac
     }
 
     @Override
-    public void onOverlayToggled(TrackedApp app, boolean enabled) {
-        store.put(app.withOverlayEnabled(enabled));
+    public void onModeClicked(TrackedApp app) {
+        ModeDialog.show(requireContext(), app.mode, mode -> {
+            store.put(app.withMode(mode));
+            refresh();
+        });
     }
 
     @Override

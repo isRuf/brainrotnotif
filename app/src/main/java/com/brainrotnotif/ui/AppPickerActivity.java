@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.brainrotnotif.R;
+import com.brainrotnotif.data.AlertMode;
 import com.brainrotnotif.data.InstalledApps;
 import com.brainrotnotif.data.TrackedApp;
 import com.brainrotnotif.data.TrackedAppsStore;
@@ -37,7 +38,7 @@ public class AppPickerActivity extends AppCompatActivity {
                 Toast.makeText(this, "Уже в списке", Toast.LENGTH_SHORT).show();
                 return;
             }
-            store.put(new TrackedApp(entry.packageName, true,
+            store.put(new TrackedApp(entry.packageName, AlertMode.BANNER,
                     TrackedAppsStore.DEFAULT_LIMIT_MINUTES));
             Toast.makeText(this, entry.label + " добавлено", Toast.LENGTH_SHORT).show();
             finish();

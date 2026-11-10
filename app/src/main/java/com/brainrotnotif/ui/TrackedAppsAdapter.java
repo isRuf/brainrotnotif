@@ -14,7 +14,7 @@ import com.brainrotnotif.R;
 import com.brainrotnotif.data.InstalledApps;
 import com.brainrotnotif.data.TrackedApp;
 import com.brainrotnotif.util.Formats;
-import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ import java.util.Map;
 public class TrackedAppsAdapter extends RecyclerView.Adapter<TrackedAppsAdapter.Holder> {
 
     public interface Callbacks {
-        void onOverlayToggled(TrackedApp app, boolean enabled);
+        void onModeClicked(TrackedApp app);
 
         void onLimitClicked(TrackedApp app);
 
@@ -67,10 +67,8 @@ public class TrackedAppsAdapter extends RecyclerView.Adapter<TrackedAppsAdapter.
         holder.subtitle.setText("Лимит " + app.limitMinutes + " мин · сегодня "
                 + Formats.duration(total == null ? 0 : total));
 
-        holder.overlay.setOnCheckedChangeListener(null);
-        holder.overlay.setChecked(app.overlayEnabled);
-        holder.overlay.setOnCheckedChangeListener(
-                (button, checked) -> callbacks.onOverlayToggled(app, checked));
+        holder.mode.setText(ModeDialog.labelRes(app.mode));
+        holder.mode.setOnClickListener(v -> callbacks.onModeClicked(app));
 
         holder.itemView.setOnClickListener(v -> callbacks.onLimitClicked(app));
         holder.itemView.setOnLongClickListener(v -> {
@@ -88,14 +86,14 @@ public class TrackedAppsAdapter extends RecyclerView.Adapter<TrackedAppsAdapter.
         final ImageView icon;
         final TextView label;
         final TextView subtitle;
-        final MaterialSwitch overlay;
+        final MaterialButton mode;
 
         Holder(@NonNull View itemView) {
             super(itemView);
             icon = itemView.findViewById(R.id.icon);
             label = itemView.findViewById(R.id.label);
             subtitle = itemView.findViewById(R.id.subtitle);
-            overlay = itemView.findViewById(R.id.overlay);
+            mode = itemView.findViewById(R.id.mode);
         }
     }
 }

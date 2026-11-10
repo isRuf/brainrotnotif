@@ -35,8 +35,10 @@
             android:textAppearance="?attr/textAppearanceBodySmall" />
     </LinearLayout>
 
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/overlay"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/mode"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:minWidth="88dp" />
 </LinearLayout>

@@ -6,4 +6,11 @@
     <string name="no_usage_access">Нет доступа к статистике использования</string>
     <string name="tab_stats">Статистика</string>
     <string name="tab_settings">Настройки</string>
+    <string name="mode_title">Как напоминать</string>
+    <string name="mode_off">Выкл</string>
+    <string name="mode_banner">Баннер</string>
+    <string name="mode_fullscreen">Весь экран</string>
+    <string name="alert_ok">Ок</string>
+    <string name="alert_ok_countdown">Ок (%1$d)</string>
+    <string name="alert_tasks">Задачи</string>
 </resources>

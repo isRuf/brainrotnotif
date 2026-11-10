@@ -1,3 +1,7 @@
 <resources>
     <style name="Theme.BrainRotNotif" parent="Theme.Material3.DayNight.NoActionBar" />
+
+    <style name="Theme.BrainRotNotif.Alert" parent="Theme.BrainRotNotif">
+        <item name="android:windowBackground">?attr/colorErrorContainer</item>
+    </style>
 </resources>

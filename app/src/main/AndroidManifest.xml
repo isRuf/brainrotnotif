@@ -40,6 +40,16 @@
             android:exported="false"
             android:label="@string/add_app" />
 
+        <!-- Своя задача без affinity: экран перекрывает залипательное приложение и не
+             оставляет следа в недавних. -->
+        <activity
+            android:name=".ui.FullScreenAlertActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@style/Theme.BrainRotNotif.Alert" />
+
         <service
             android:name=".monitor.MonitorService"
             android:exported="false"

@@ -23,11 +23,13 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 
+import com.brainrotnotif.data.AlertMode;
 import com.brainrotnotif.data.InstalledApps;
 import com.brainrotnotif.data.SystemUsageEventReader;
 import com.brainrotnotif.data.TrackedApp;
 import com.brainrotnotif.data.TrackedAppsStore;
 import com.brainrotnotif.data.UsageTracker;
+import com.brainrotnotif.ui.FullScreenAlertActivity;
 import com.brainrotnotif.ui.MainActivity;
 import com.brainrotnotif.util.Formats;
 import com.brainrotnotif.util.Permissions;
@@ -146,6 +148,15 @@ public class MonitorService extends Service
         mainHandler.post(() -> banner.show(packageName, elapsedMs));
     }
 
+    /**
+     * Фоновый запуск Activity разрешён, потому что у приложения есть SYSTEM_ALERT_WINDOW —
+     * то же разрешение, без которого не работает и баннер. Без него система тихо
+     * блокирует запуск, и напоминание не показывается вовсе.
+     */
+    protected void showFullScreenAlert(String packageName, long elapsedMs) {
+        startActivity(FullScreenAlertActivity.intent(this, packageName, elapsedMs));
+    }
+
     protected void hideBanner() {
         if (bannerPackage == null) {
             return;
@@ -187,7 +198,7 @@ public class MonitorService extends Service
                 elapsed = tracker.getSessionDurationMs(pkg);
             }
 
-            if (app != null && app.overlayEnabled) {
+            if (app != null && app.mode != AlertMode.OFF) {
                 long limitMs = app.limitMinutes * 60_000L;
                 String key = pkg + "@" + tracker.getSessionStartMs(pkg);
                 Integer stored = fired.get(key);
@@ -196,7 +207,12 @@ public class MonitorService extends Service
                 if (elapsed >= threshold) {
                     fired.put(key, count + 1);
                     threshold += limitMs;
-                    showBanner(pkg, elapsed);
+                    if (app.mode == AlertMode.FULLSCREEN) {
+                        hideBanner();
+                        showFullScreenAlert(pkg, elapsed);
+                    } else {
+                        showBanner(pkg, elapsed);
+                    }
                 }
                 delay = Math.max(TICK_MIN_MS, Math.min(TICK_MAX_MS, threshold - elapsed));
             } else {

@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Построчный формат: packageName \t enabled(0|1) \t limitMinutes.
- * Имена пакетов не содержат табов и переводов строки, поэтому формат однозначен.
+ * Построчный формат: packageName \t mode \t limitMinutes, где mode — код {@link AlertMode}.
+ * Записи, созданные до появления полноэкранного режима, хранят 0 или 1, то есть читаются
+ * как OFF и BANNER без миграции. Имена пакетов не содержат табов и переводов строки,
+ * поэтому формат однозначен.
  */
 public final class TrackedAppsCodec {
 
@@ -20,7 +22,7 @@ public final class TrackedAppsCodec {
             }
             sb.append(app.packageName)
                     .append('\t')
-                    .append(app.overlayEnabled ? '1' : '0')
+                    .append(app.mode.code)
                     .append('\t')
                     .append(app.limitMinutes);
         }
@@ -37,13 +39,19 @@ public final class TrackedAppsCodec {
             if (parts.length != 3 || parts[0].isEmpty()) {
                 continue;
             }
+            int modeCode;
             int limit;
             try {
+                modeCode = Integer.parseInt(parts[1]);
                 limit = Integer.parseInt(parts[2]);
             } catch (NumberFormatException e) {
                 continue;
             }
-            out.add(new TrackedApp(parts[0], "1".equals(parts[1]), limit));
+            AlertMode mode = AlertMode.fromCode(modeCode);
+            if (mode == null) {
+                continue;
+            }
+            out.add(new TrackedApp(parts[0], mode, limit));
         }
         return out;
     }

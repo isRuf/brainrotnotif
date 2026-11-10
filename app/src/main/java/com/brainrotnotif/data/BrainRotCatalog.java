@@ -47,7 +47,8 @@ public final class BrainRotCatalog {
         int added = 0;
         for (String pkg : detect(InstalledApps.launchable(context))) {
             if (store.get(pkg) == null) {
-                store.put(new TrackedApp(pkg, true, TrackedAppsStore.DEFAULT_LIMIT_MINUTES));
+                store.put(new TrackedApp(
+                        pkg, AlertMode.BANNER, TrackedAppsStore.DEFAULT_LIMIT_MINUTES));
                 added++;
             }
         }
